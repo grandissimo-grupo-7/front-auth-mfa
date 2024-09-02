@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cadastro | Railvision</title>
+        <link rel="stylesheet" href="css/style.css">
+        <script src="https://www.gstatic.com/firebasejs/10.13/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.13/firebase-auth-compat.js"></script>
+    </head>
+    <body>
+        <div class="header">
+            <img src="railvision-logo.png" alt="Logo do railvision">
+            <span>Railvision</span>
+        </div>
+        <div class="form">
+            <div class="input-box required">
+                <label for="name">Nome completo:</label>
+                <input id="name" type="text">
+            </div>
+            <div class="input-box required">
+                <label for="cpf">CPF:</label>
+                <input id="cpf" type="text">
+            </div>
+            <div class="input-box required">
+                <label for="email">E-mail:</label>
+                <input id="email" type="email" value="agda.taniguchi@sptech.school">
+            </div>
+            <div class="input-box required">
+                <label for="password">Senha:</label>
+                <input id="password" type="password" value="123456">
+            </div>
+            <div class="input-box required">
+                <label for="password-repeat">Repita a senha:</label>
+                <input id="password-repeat" type="password">
+            </div>
+            <div class="input-box required">
+                <label for="job-title">Cargo:</label>
+                <select id="job-title">
+                    <option value="administrador">Administrador</option>
+                    <option value="operador">Operador</option>
+                </select>
+            </div>
+            <button id="sendCodeBtn">Cadastrar</button>
+            <div id="box-message" class="box-message invisible"></div>
+        </div>
+    </body>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDzkJ8yuol1gBYRqoopOuNQj-gqUAZAKCU",
+            authDomain: "railvision-9544f.firebaseapp.com",
+            projectId: "railvision-9544f",
+            storageBucket: "railvision-9544f.appspot.com",
+            messagingSenderId: "155111212019",
+            appId: "1:155111212019:web:b4d6d929a7bf73a2b50886"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+
+        function exibirMensagem(mensagem) {
+            document.getElementById("box-message").innerHTML = mensagem;
+            document.getElementById("box-message").classList.remove("invisible");
+        }
+
+        // Botão de enviar código SMS
+        document.getElementById('sendCodeBtn').addEventListener('click', function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const passwordRepeat = document.getElementById('password-repeat').value;
+
+            if(email == "") {
+                exibirMensagem("É necessário preencher o campo do e-mail.");
+                return;
+            }
+            if(password == "") {
+                exibirMensagem("É necessário preencher o campo da senha.");
+                return;
+            }
+            // if(password !== passwordRepeat) {
+            //     exibirMensagem("Os dois campos de senha não coincidem.");
+            //     return;
+            // }
+
+            const appVerifier = window.recaptchaVerifier;
+
+            // Criação de usuário com email e senha
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                })
+                .then((confirmationResult) => {
+                    window.confirmationResult = confirmationResult;
+                    var actionCodeSettings = {
+                        url: `http://127.0.0.1/login?email=${firebase.auth().currentUser.email}`
+                    };
+
+                    console.log(firebase.auth())
+
+                    firebase.auth().currentUser.sendEmailVerification(actionCodeSettings).then(() => {
+                        console.log("E-mail enviado com sucesso!");
+                    }).catch((error) => {
+                        console.error(error);
+                    });
+
+                    exibirMensagem("Usuário cadastrado com sucesso! Por favor, verifique seu e-mail antes de entrar pela primeira vez.");
+                })
+                .catch((error) => {
+                    console.error(`${error.code}: ${error.message}`);
+
+                    if(error.code === "auth/email-already-in-use") {
+                        exibirMensagem("Esse endereço de e-mail já está em uso por outra conta.");
+                        return;
+                    }
+                });
+        });
+    </script>
+</html>

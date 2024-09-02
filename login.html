@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Railvision</title>
+    <script src="https://www.gstatic.com/firebasejs/10.13/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="header">
+        <img src="railvision-logo.png" alt="Logo do railvision">
+        <span>Railvision</span>
+    </div>
+    <div class="form" id="step-01">
+        <div class="input-box">
+            <label for="email">Digite seu e-mail:</label>
+            <input id="email" type="email" placeholder="email@dominio.com" value="agda.taniguchi@sptech.school">
+        </div>
+        <div class="input-box">
+            <label for="password">Digite sua senha:</label>
+            <input id="password" type="password" placeholder="******" value="123456">
+        </div>
+        <div class="input-box">
+            <div id="recaptcha-container"></div>
+        </div>
+        <button>Continuar</button>
+    </div>
+    <div class="form invisible" id="step-02">
+        <div class="input-box">
+            <label for="phone">Digite o seu número de celular:</label>
+            <input id="phone" type="phone" placeholder="+5511912345678">
+        </div>
+        <button>Enviar código SMS</button>
+    </div>
+    <div class="form invisible" id="step-03">
+        <div class="input-box">
+            <label for="code-auth">Digite o código de verificação enviado para o celular de final <span class="bold" id="final-phone-number">3788</span>:</label>
+            <input id="code-auth" type="number" class="spacing" placeholder="XXXXXX">
+        </div>
+        <div class="input-box">
+            <button>Entrar</button>
+        </div>
+    </div>
+</body>
+
+<script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzkJ8yuol1gBYRqoopOuNQj-gqUAZAKCU",
+        authDomain: "railvision-9544f.firebaseapp.com",
+        projectId: "railvision-9544f",
+        storageBucket: "railvision-9544f.appspot.com",
+        messagingSenderId: "155111212019",
+        appId: "1:155111212019:web:b4d6d929a7bf73a2b50886"
+    };
+
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    var resolver, verifyId;
+
+    // Habilita a persistência local para manter a sessão do usuário
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+    // Renderiza o reCAPTCHA
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'normal',
+        'callback': function(response) {
+            // reCAPTCHA solved - continue to submit
+        }
+    });
+
+    // Renderize o reCAPTCHA e obtenha o ID do widget
+    window.recaptchaVerifier.render().then(function(widgetId) {
+        window.recaptchaWidgetId = widgetId;
+        console.log('ReCAPTCHA renderizado com o ID:', widgetId);
+    });
+
+    function verifyNumber() {
+        const phoneInfoOptions = {
+            multiFactorHint: resolver.hints[0],
+            session: resolver.session
+        };
+
+        const phoneAuthProvider = new firebase.auth.PhoneAuthProvider(auth);
+        phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier).then(function (verificationId) {
+            verifyId = verificationId;
+        });
+    }
+
+    document.querySelector("#step-01 button").addEventListener("click", function() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        auth.signInWithEmailAndPassword(email, password).then((userCredential) => {
+            // Usuário autenticado, agora verifique o número de telefone
+            const user = userCredential.user;
+
+            // Verifique se o usuário tem um número de telefone
+            if (user.phoneNumber) {
+                const appVerifier = window.recaptchaVerifier;
+                auth.currentUser.multiFactor.getSession().then((multiFactorSession) => {
+                    const phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
+                    return phoneAuthProvider.verifyPhoneNumber(user.phoneNumber, appVerifier, multiFactorSession);
+                }).then((verificationId) => {
+                    window.verificationId = verificationId;
+                    // Autenticação de um fator
+                }).catch((error) => {
+                    console.error("Erro ao enviar SMS:", error);
+                });
+            } else {
+                console.error("Número de telefone não encontrado.");
+
+                document.getElementById("step-01").classList.add("invisible");
+                document.getElementById("step-02").classList.remove("invisible");
+            }
+        }).catch((error) => {
+            console.error("Erro ao autenticar:", error);
+            if(error.code === "auth/multi-factor-auth-required") {
+                resolver = error.resolver;
+                document.getElementById("step-01").classList.add("invisible");
+                document.getElementById("step-03").classList.remove("invisible");
+
+                const phoneInfoOptions = {
+                    multiFactorHint: resolver.hints[0],
+                    session: resolver.session
+                };
+
+                const phoneAuthProvider = new firebase.auth.PhoneAuthProvider(auth);
+                phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier).then(function (verificationId) {
+                    verifyId = verificationId;
+                });
+            }
+        });
+    });
+
+    document.querySelector("#step-02 button").addEventListener("click", function() {
+        document.getElementById("step-02").classList.add("invisible");
+        document.getElementById("step-03").classList.remove("invisible");
+
+        auth.currentUser.multiFactor.getSession().then((multiFactorSession) => {
+            var phoneNumber = document.getElementById("phone").value;
+    
+            const phoneInfoOptions = {
+                phoneNumber: phoneNumber,
+                session: multiFactorSession
+            };
+    
+            const phoneAuthProvider = new firebase.auth.PhoneAuthProvider(auth);
+            phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier).then(function (verificationId) {
+                verifyId = verificationId;
+                window.verificationId = verificationId;
+            });
+        }).catch((error) => {
+            console.error(error);
+        });
+
+    });
+
+    document.querySelector("#step-03 button").addEventListener("click", function() {
+        const code = document.getElementById('code-auth').value;
+
+        const cred = firebase.auth.PhoneAuthProvider.credential(verifyId, code);
+        const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(cred);
+
+        if(resolver) {
+            resolver.resolveSignIn(multiFactorAssertion).then((userCredential) => {
+                console.log("userCredential: ");
+                console.log(userCredential);
+    
+                firebase.auth().currentUser.getIdToken(true).then((idToken) => {
+                    const expirationTime = Date.now() + (4 * 60 * 60 * 1000); // 4 horas em milissegundos
+                    localStorage.setItem("authToken", idToken);
+                    localStorage.setItem("tokenExpiration", expirationTime);
+                    window.location.href = "dashboard.html";
+                }).catch((err) => {
+                    console.error(err);
+                });
+            });
+        }
+        else {
+            firebase.auth().currentUser.getIdToken(true).then((idToken) => {
+                const expirationTime = Date.now() + (4 * 60 * 60 * 1000); // 4 horas em milissegundos
+                localStorage.setItem("authToken", idToken);
+                localStorage.setItem("tokenExpiration", expirationTime);
+                window.location.href = "dashboard.html";
+            }).catch((err) => {
+                console.error(err);
+            });
+            auth.currentUser.multiFactor.enroll(multiFactorAssertion);
+        }
+    });
+
+</script>
+
+</html>
