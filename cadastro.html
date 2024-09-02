@@ -24,11 +24,11 @@
             </div>
             <div class="input-box required">
                 <label for="email">E-mail:</label>
-                <input id="email" type="email" value="agda.taniguchi@sptech.school">
+                <input id="email" type="email">
             </div>
             <div class="input-box required">
                 <label for="password">Senha:</label>
-                <input id="password" type="password" value="123456">
+                <input id="password" type="password">
             </div>
             <div class="input-box required">
                 <label for="password-repeat">Repita a senha:</label>
@@ -81,10 +81,10 @@
                 exibirMensagem("É necessário preencher o campo da senha.");
                 return;
             }
-            // if(password !== passwordRepeat) {
-            //     exibirMensagem("Os dois campos de senha não coincidem.");
-            //     return;
-            // }
+            if(password !== passwordRepeat) {
+                exibirMensagem("Os dois campos de senha não coincidem.");
+                return;
+            }
 
             const appVerifier = window.recaptchaVerifier;
 

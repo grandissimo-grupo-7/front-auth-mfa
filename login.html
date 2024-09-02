@@ -18,11 +18,11 @@
     <div class="form" id="step-01">
         <div class="input-box">
             <label for="email">Digite seu e-mail:</label>
-            <input id="email" type="email" placeholder="email@dominio.com" value="agda.taniguchi@sptech.school">
+            <input id="email" type="email" placeholder="email@dominio.com">
         </div>
         <div class="input-box">
             <label for="password">Digite sua senha:</label>
-            <input id="password" type="password" placeholder="******" value="123456">
+            <input id="password" type="password" placeholder="******">
         </div>
         <div class="input-box">
             <div id="recaptcha-container"></div>
@@ -38,13 +38,14 @@
     </div>
     <div class="form invisible" id="step-03">
         <div class="input-box">
-            <label for="code-auth">Digite o código de verificação enviado para o celular de final <span class="bold" id="final-phone-number">3788</span>:</label>
+            <label for="code-auth">Digite o código de verificação enviado para o celular de final <span class="bold" id="final-phone-number"></span>:</label>
             <input id="code-auth" type="number" class="spacing" placeholder="XXXXXX">
         </div>
         <div class="input-box">
             <button>Entrar</button>
         </div>
     </div>
+    <div id="box-message" class="box-message form invisible"></div>
 </body>
 
 <script>
@@ -94,6 +95,7 @@
     }
 
     document.querySelector("#step-01 button").addEventListener("click", function() {
+        document.getElementById("box-message").classList.add("invisible");
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
@@ -106,6 +108,7 @@
                 const appVerifier = window.recaptchaVerifier;
                 auth.currentUser.multiFactor.getSession().then((multiFactorSession) => {
                     const phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
+                    document.getElementById("final-phone-number").innerHTML = user.phoneNumber.slice(-4);
                     return phoneAuthProvider.verifyPhoneNumber(user.phoneNumber, appVerifier, multiFactorSession);
                 }).then((verificationId) => {
                     window.verificationId = verificationId;
@@ -126,15 +129,21 @@
                 document.getElementById("step-01").classList.add("invisible");
                 document.getElementById("step-03").classList.remove("invisible");
 
+                document.getElementById("final-phone-number").innerHTML = resolver.hints[0].phoneNumber.slice(-4);
+
                 const phoneInfoOptions = {
                     multiFactorHint: resolver.hints[0],
                     session: resolver.session
                 };
 
-                const phoneAuthProvider = new firebase.auth.PhoneAuthProvider(auth);
-                phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier).then(function (verificationId) {
-                    verifyId = verificationId;
-                });
+                // const phoneAuthProvider = new firebase.auth.PhoneAuthProvider(auth);
+                // phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier).then(function (verificationId) {
+                //     verifyId = verificationId;
+                // });
+            }
+            else if(error.code === "auth/invalid-credential") {
+                document.getElementById("box-message").classList.remove("invisible");
+                document.getElementById("box-message").innerHTML = "Credenciais inválidas, tente novamente";
             }
         });
     });
@@ -145,6 +154,8 @@
 
         auth.currentUser.multiFactor.getSession().then((multiFactorSession) => {
             var phoneNumber = document.getElementById("phone").value;
+
+            document.getElementById("final-phone-number").innerHTML = phoneNumber.slice(-4);
     
             const phoneInfoOptions = {
                 phoneNumber: phoneNumber,
