@@ -3,7 +3,7 @@
 :root {
     --color1: #4a6d8c;
     --color2: #153959;
-    --color3: #a84d54;
+    --color3: #6789a9;
     --text: #fff;
 }
 
@@ -19,7 +19,7 @@ body {
     color: var(--text);
 }
 
-.header {
+.banner {
     display: flex;
     gap: 1rem;
     justify-content: center;
@@ -27,11 +27,11 @@ body {
     margin: 3rem 0;
 }
 
-.header img {
+.banner img {
     width: 75px;
 }
 
-.header span {
+.banner span {
     font-size: 3rem;
 }
 
@@ -51,14 +51,9 @@ body {
     transition: border 200ms;
 }
 
-.input-box input:focus {
+.input-box input:focus,
+.input-box select:focus {
     border: var(--color2) 3px solid;
-}
-
-.input-box > label::after {
-    content: "*";
-    margin-left: 0.5em;
-    color: red;
 }
 
 button {
@@ -91,17 +86,76 @@ span.bold {
     letter-spacing: 0.5rem;
 }
 
-.box-message {
-    padding: 0.5em 1em;
+/* Register TOTP Component */
+.register-totp .box {
+    display: flex;
+    justify-content: center;
+    height: 12rem;
+}
+
+.register-totp .box .text{
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 400px;
+    user-select: none;
+}
+
+.qrcode-totp {
+    height: 100%;
+}
+
+.hide {
+    background: #2c2c2c;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.message {
     background: var(--color3);
-    border-radius: 5px;
+    padding: 1rem 2rem;
+    border-radius: 15px;
 }
 
 iframe {
     width: 100%;
-    height: 100vh;
+    height: calc(100% - 50px - 1rem);
 }
 
-.invisible {
-    display: none;
+.btn-edit-sheet {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 5;
+    background: var(--color1);
+    padding: 1rem 2rem;
+    border-radius: 30px;
+    color: white;
+    text-decoration: none;
+    transition-duration: 0.5s;
+}
+
+.btn-edit-sheet:hover {
+    transform: translateY(-5px);
+    transition-duration: 0.5s;
+}
+
+.logo-sheets {
+    width: 500px;
+    height: 50px;
+    margin: 0.5rem auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-sheets img{
+    height: 100%;
+}
+
+.sheets-view {
+    height: 100vh;
 }
