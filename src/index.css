@@ -159,3 +159,19 @@ iframe {
 .sheets-view {
     height: 100vh;
 }
+
+.flex {
+    display: flex;
+    gap: 32px;
+}
+
+.flex div {
+    width: 100%;
+}
+
+.head {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 32px;
+    margin-bottom: 16px;
+}

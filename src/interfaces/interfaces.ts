@@ -7,6 +7,8 @@ export type UsuarioCadastro = {
     cpf: string;
     admin: boolean;
     setor: string;
+    senha: string;
+    confirmarSenha: string;
 };
 
 export type UsuarioRetorno = {

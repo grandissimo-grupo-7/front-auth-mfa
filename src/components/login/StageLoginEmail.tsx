@@ -34,6 +34,8 @@ export default function StageLoginEmail({
         signInWithEmailAndPassword(auth, userLogin.email, userLogin.password).then(async (userCredential) => {
             const user = userCredential.user;
 
+            sessionStorage.setItem("email", userLogin.email);
+
             const multiFactorSession = await multiFactor(user).getSession();
             const totpSecretUser = await TotpMultiFactorGenerator.generateSecret(multiFactorSession);
 
@@ -53,6 +55,7 @@ export default function StageLoginEmail({
             switch(error.code) {
                 case "auth/multi-factor-auth-required":
                     console.log("MFA ativado!");
+                    sessionStorage.setItem("email", userLogin.email);
                     setMessage("");
                     setStage("loginTotp");
                     setTotpInfo((prev) => ({...prev, error: error}));
